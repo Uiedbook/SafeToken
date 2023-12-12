@@ -1,0 +1,43 @@
+{
+  "name": "safetoken",
+  "version": "1.0.0",
+  "description": "SafeToken - Generate/Validate secured tokens for authentication seamlessly",
+  "main": "lib/index.js",
+  "type": "module",
+  "files": [
+    "lib/index.d.ts",
+    "lib/index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fridaycandour/SafeToken.git"
+  },
+  "scripts": {
+    "compile": "rm -rf lib && npm run build",
+    "build": "tsup src/index.ts",
+    "test": "node test/index.test.js"
+  },
+  "keywords": [
+    "safe-token",
+    "authentication",
+    "token-generation",
+    "security",
+    "TypeScript",
+    "access-token",
+    "refresh-token",
+    "web-apps",
+    "API-authentication",
+    "authorization",
+    "token-manager",
+    "secure-credentials",
+    "Oauth"
+  ],
+  "author": "fridaycandour",
+  "license": "MIT",
+  "homepage": "https://github.com/fridaycandour/safeToken",
+  "devDependencies": {
+    "@types/node": "^18.7.15",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  }
+}

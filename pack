@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+#!/bin/bash
+ 
+  
+echo  "  Building ...."
+npm run compile
+echo  "  Packing ...."
+npm pack 
+mv **.tgz ~

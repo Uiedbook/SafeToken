@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "lib": ["es2022", "esnext", "dom", "dom.iterable"],
+    "declaration": true,
+    "strict": true,
+    "outDir": "lib"
+  },
+  "include": ["src", "tests"]
+}
