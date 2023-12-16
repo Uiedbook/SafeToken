@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer';
+
 declare class SafeToken {
     token: string;
     refreshT: number;
@@ -5,13 +7,18 @@ declare class SafeToken {
     refreshtoken: string;
     lastrefreshTime: number;
     lastAccessTime: number;
+    rtStoreKey?: string;
+    key: string;
+    iv: Buffer;
     constructor(init?: {
-        TokenTime?: number;
-        RefreshDays: number;
+        timeWindow?: number;
+        rtDays?: number;
+        encryptionKey?: string;
+        rtStoreKey?: string;
     });
-    newToken(_r?: true): string;
-    verifyToken(hashString: string, _r?: true): boolean;
-    verifyRefreshToken(hashString: string): boolean;
+    newToken(data?: string, _r?: true): string;
+    verifyToken(hashString: string, _r?: true): string | boolean;
+    verifyRefreshToken(hashString: string): string | boolean;
     getRefreshToken(): string;
     resetAccessToken(): void;
     resetRefreshToken(): void;
@@ -19,7 +26,10 @@ declare class SafeToken {
         day: number;
         diffSeconds: number;
     };
-    static createToken(): string;
+    static create(): string;
+    static retrToken(rtStoreKey: string): [number, string];
+    private dec;
+    private enc;
 }
 
 export { SafeToken };

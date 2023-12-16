@@ -1,42 +1,48 @@
 # SafeToken Generator/validator
 
-SafeToken is a simplest Auth for generating secure and random tokens suitable for authentication purposes. It can be used to create access tokens, refresh tokens that is verifirable, stateless and can be invalidated anytime by calling reset.
+SafeToken is a simplest Auth for generating secure and random tokens suitable for authentication purposes. It can be used to create access tokens, refresh tokens that is verifirable, store encrypted data and can be invalidated anytime by just calling reset.
 
 ## Features
 
-- **Secure Token Generation:** Utilizes the a unique, random lenth string random string generation.
+- **Secure Token Generation:** Utilizes cryptographic token generation.
 - **Auto Token Expiry Management:** Tokens have configurable expiration times.
 - **Refresh Token Support:** Generates refresh tokens for secure token refresh mechanisms.
 
-- 1KB~ size minified and fast token creation and verification logic.
+- **Super light-weight** 2KB~ size minified and fast token creation and verification logic.
+- **Most fastest** create token and verify token functionality ever.
 
 ## How It Works
 
 The `SafeToken` class provides methods for generating access and refresh tokens. Tokens are generated using secure random strings to enhance security. Token expiration is managed, and new tokens can be generated based on configured time intervals.
 
+Refresh tokens can stored to disk with the rtStoreKey: fine-name option.
+
 ## Usage
-
-1. **Installation:**
-
-```bash
-npm i safetoken
-```
 
 ```js
 // auth.js
 
 import { SafeToken } from "safetoken";
 // auth
-const Auth = new SafeToken();
+const Auth = new SafeToken({
+  encryptionKey: "xfn9P8L9rIpKtWKj68IZ3G865WfdYXNY",
+  refreshTokenPath: "_token",
+});
 //create a new access token
-const accesToken = Auth.newToken();
+const accesToken = Auth.newToken(JSON.stringify({ name: "friday" }));
 // Generate a refresh token
 const refreshToken = Auth.getRefreshToken();
+console.log({
+  accesToken,
+  refreshToken,
+  validity: JSON.parse(Auth.verifyToken(accesToken) as string),
+});
+
 // revoke access tokens
 Auth.resetAccessToken();
 // revoke refresh tokens
 Auth.resetRefreshToken();
-console.log({ accesToken, refreshToken });
+
 ```
 
 ## Custom Token Lifetimes
@@ -50,6 +56,40 @@ You can customize token expiration times during class instantiation. Adjust the 
 const Auth = new SecureToken({
   TokenTime: 900, // Set access token lifetime to 15 minutes (in seconds)
   RefreshDays: 7, // Set refresh token lifetime to 7 days
+});
+```
+
+1. **Installation:**
+
+```bash
+npm i safetoken
+```
+
+## test
+
+```js
+import { SafeToken } from "safetoken";
+
+const assert = (cond) => {
+  if (!cond) throw new Error(` assertion failed`);
+};
+// auth
+const Auth = new SafeToken({
+  encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+});
+// tokens
+const accesToken = Auth.newToken();
+const accesToken2 = Auth.newToken(JSON.stringify({ name: "friday" }));
+const refreshToken = Auth.getRefreshToken();
+// assertions
+assert(Auth.verifyToken(accesToken) === true);
+assert(JSON.parse(Auth.verifyToken(accesToken2)).name === "friday");
+assert(Auth.verifyRefreshToken(refreshToken) === true);
+
+console.log({
+  accesToken,
+  refreshToken,
+  accesToken2: JSON.parse(Auth.verifyToken(accesToken2)),
 });
 ```
 
