@@ -1,6 +1,6 @@
 {
   "name": "safetoken",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "SafeToken - Generate/Validate secured tokens for authentication seamlessly",
   "main": "lib/index.js",
   "type": "module",
