@@ -38,7 +38,7 @@ export class SafeToken {
       this.lastrefreshTime = Date.now();
     }
   }
-  newToken(data: string = "", _r?: true) {
+  newAccessToken(data: string = "", _r?: true) {
     if (data) {
       if (typeof data !== "string")
         throw new Error("data to encrypt is invalid!, must be string type");
@@ -68,6 +68,13 @@ export class SafeToken {
       (data + (_r ? this.refreshtoken : this.token).slice(si - 10, si))
     );
   }
+  newRefreshToken(data: string = "", _r?: true) {
+    const diff = SafeToken.timeDiff(this.lastrefreshTime);
+    if (diff.day > this.refreshT) {
+      this.resetRefreshToken();
+    }
+    return this.newAccessToken(data, true);
+  }
   verifyToken(hashString: string, _r?: true): string | boolean {
     let data = true;
     let [si, hash] = hashString.split(":");
@@ -83,13 +90,6 @@ export class SafeToken {
   }
   verifyRefreshToken(hashString: string) {
     return this.verifyToken(hashString, true);
-  }
-  getRefreshToken() {
-    const diff = SafeToken.timeDiff(this.lastrefreshTime);
-    if (diff.day > this.refreshT) {
-      this.resetRefreshToken();
-    }
-    return this.newToken(undefined, true);
   }
   resetAccessToken() {
     this.token = SafeToken.create();

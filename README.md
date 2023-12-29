@@ -29,9 +29,9 @@ const Auth = new SafeToken({
   refreshTokenPath: "_token",
 });
 //create a new access token
-const accesToken = Auth.newToken(JSON.stringify({ name: "friday" }));
+const accesToken = Auth.newAccessToken(JSON.stringify({ name: "friday" }));
 // Generate a refresh token
-const refreshToken = Auth.getRefreshToken();
+const refreshToken = Auth.newRefreshToken(JSON.stringify({ name: "friday" }));
 console.log({
   accesToken,
   refreshToken,
@@ -78,9 +78,9 @@ const Auth = new SafeToken({
   encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 });
 // tokens
-const accesToken = Auth.newToken();
-const accesToken2 = Auth.newToken(JSON.stringify({ name: "friday" }));
-const refreshToken = Auth.getRefreshToken();
+const accesToken = Auth.newAccessToken();
+const accesToken2 = Auth.newAccessToken(JSON.stringify({ name: "friday" }));
+const refreshToken = Auth.newRefreshToken();
 // assertions
 assert(Auth.verifyToken(accesToken) === true);
 assert(JSON.parse(Auth.verifyToken(accesToken2)).name === "friday");
