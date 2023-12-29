@@ -78,7 +78,7 @@ export class SafeToken {
   verifyToken(hashString: string, _r?: true): string | boolean {
     let data = true;
     let [si, hash] = (hashString || "").split(":");
-    if (!si || !hash) return false;
+    if (!si || !hash) return false; //? fixed
     if (hash.length !== 10) {
       data = this.dec(hash.slice(0, hash.length - 10)) as unknown as boolean;
       hash = hash.slice(hash.length - 10, hash.length);
