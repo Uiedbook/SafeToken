@@ -16,10 +16,10 @@ declare class SafeToken {
         encryptionKey?: string;
         rtStoreKey?: string;
     });
-    newToken(data?: string, _r?: true): string;
+    newAccessToken(data?: string, _r?: true): string;
+    newRefreshToken(data?: string, _r?: true): string;
     verifyToken(hashString: string, _r?: true): string | boolean;
     verifyRefreshToken(hashString: string): string | boolean;
-    getRefreshToken(): string;
     resetAccessToken(): void;
     resetRefreshToken(): void;
     static timeDiff(timestamp: number): {
