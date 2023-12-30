@@ -1,7 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { Buffer } from "node:buffer";
-import { readFileSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { readFileSync, writeFileSync } from "node:fs";
 
 export class SafeToken {
   token: string;
@@ -10,7 +9,7 @@ export class SafeToken {
   refreshtoken: string;
   lastrefreshTime: number;
   lastAccessTime: number;
-  rtStoreKey?: string;
+  rtStoreKey: string = "_refresh_token";
   key: string;
   iv = randomBytes(16);
   constructor(init?: {
@@ -19,29 +18,29 @@ export class SafeToken {
     encryptionKey?: string;
     rtStoreKey?: string;
   }) {
+    // ? reset access tokens
     this.token = SafeToken.create();
-    this.tokenT = init?.timeWindow || 3600_000;
-    this.refreshT = init?.rtDays || 30;
     this.lastAccessTime = Date.now();
-    this.rtStoreKey = init?.rtStoreKey;
+    // ? time window setup
+    this.tokenT = init?.timeWindow || 3600;
+    this.refreshT = init?.rtDays || 30;
+    // ? refresh file name
+    this.rtStoreKey = init?.rtStoreKey || "_refresh_token";
+    //? setup encryption keys
     this.key =
       typeof init?.encryptionKey === "string" &&
       init.encryptionKey.length === 32
         ? init.encryptionKey
         : "";
-    if (typeof init?.rtStoreKey === "string") {
-      [this.lastrefreshTime, this.refreshtoken] = SafeToken.retrToken(
-        init.rtStoreKey
-      );
-    } else {
-      this.refreshtoken = SafeToken.create();
-      this.lastrefreshTime = Date.now();
-    }
+    // ? retrieve last refresh tokens
+    [this.lastrefreshTime, this.refreshtoken] = SafeToken.retrToken(
+      this.rtStoreKey
+    );
   }
   newAccessToken(data: string = "", _r?: true) {
     if (data) {
       if (typeof data !== "string")
-        throw new Error("data to encrypt is invalid!, must be string type");
+        throw new Error("Data to encrypt must be string type");
       data = this.enc(data);
     }
     let si = Math.floor(
@@ -60,7 +59,6 @@ export class SafeToken {
         this.resetAccessToken();
       }
     });
-
     return (
       si +
       ":" +
@@ -74,7 +72,7 @@ export class SafeToken {
     }
     return this.newAccessToken(data, true);
   }
-  verifyToken(hashString: string, _r?: true): string | boolean {
+  verifyAccessToken(hashString: string, _r?: true): string | boolean {
     let data = true;
     let [si, hash] = (hashString || "").split(":");
     if (!si || !hash) return false; //? fixed
@@ -89,7 +87,7 @@ export class SafeToken {
     return key === hash && data;
   }
   verifyRefreshToken(hashString: string) {
-    return this.verifyToken(hashString, true);
+    return this.verifyAccessToken(hashString, true);
   }
   resetAccessToken() {
     this.token = SafeToken.create();
@@ -97,13 +95,8 @@ export class SafeToken {
   }
   resetRefreshToken() {
     this.refreshtoken = SafeToken.create();
-    if (typeof this.rtStoreKey === "string") {
-      writeFile(
-        this.rtStoreKey || "_refresh_token",
-        this.refreshT + ":" + this.refreshtoken
-      );
-    }
     this.lastrefreshTime = Date.now();
+    writeFileSync(this.rtStoreKey, this.refreshT + ":" + this.refreshtoken);
   }
   static timeDiff(timestamp: number) {
     const diffSeconds = Math.floor(
@@ -120,23 +113,22 @@ export class SafeToken {
     return randomBytes(Math.max(Math.random() * 999, 499)).toString("hex");
   }
   static retrToken(rtStoreKey: string): [number, string] {
+    let rt: [number, string] = [Date.now(), SafeToken.create()];
     try {
-      const data = readFileSync(rtStoreKey || "_refresh_token", {
+      const data = readFileSync(rtStoreKey, {
         encoding: "utf8",
       });
-      if (!data) {
-        return [Date.now(), SafeToken.create()];
-      } else {
+      if (data) {
         const [date, lastStoredToken] = data.split(":");
-        return [Number(date), lastStoredToken];
+        rt = [Number(date), lastStoredToken];
       }
     } catch (error) {
-      return [Date.now(), SafeToken.create()];
+      writeFileSync(rtStoreKey, rt[0] + ":" + rt[1]);
     }
+    return rt;
   }
   private dec(text: string) {
-    if (!this.key)
-      throw new Error("Encryption key is invalid!, must be 32 charaters");
+    if (!this.key) throw new Error("Encryption key must be 32 charaters");
     const decipher = createDecipheriv(
       "aes-256-cbc",
       Buffer.from(this.key),
@@ -149,8 +141,7 @@ export class SafeToken {
     return decrypted.toString();
   }
   private enc(text: string) {
-    if (!this.key)
-      throw new Error("Encryption key is invalid!, must be 32 charaters");
+    if (!this.key) throw new Error("Encryption key must be 32 charaters");
     const cipher = createCipheriv(
       "aes-256-cbc",
       Buffer.from(this.key),

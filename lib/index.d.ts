@@ -7,7 +7,7 @@ declare class SafeToken {
     refreshtoken: string;
     lastrefreshTime: number;
     lastAccessTime: number;
-    rtStoreKey?: string;
+    rtStoreKey: string;
     key: string;
     iv: Buffer;
     constructor(init?: {
@@ -18,7 +18,7 @@ declare class SafeToken {
     });
     newAccessToken(data?: string, _r?: true): string;
     newRefreshToken(data?: string, _r?: true): string;
-    verifyToken(hashString: string, _r?: true): string | boolean;
+    verifyAccessToken(hashString: string, _r?: true): string | boolean;
     verifyRefreshToken(hashString: string): string | boolean;
     resetAccessToken(): void;
     resetRefreshToken(): void;

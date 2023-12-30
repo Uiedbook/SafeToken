@@ -8,39 +8,25 @@ const Auth = new SafeToken({
   encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 });
 // tokens
-let accesToken = Auth.newAccessToken();
-let accesToken2 = Auth.newAccessToken(JSON.stringify({ name: "friday" }));
-let refreshToken = Auth.newRefreshToken();
+let accesToken = Auth.newAccessToken(
+  JSON.stringify({ email: "fridaycandours@gmail.com" })
+);
+let refreshToken = Auth.newRefreshToken(
+  JSON.stringify({ email: "fridaycandours@gmail.com" })
+);
 // assertions
-assert(Auth.verifyToken(accesToken) === true);
-assert(JSON.parse(Auth.verifyToken(accesToken2)).name === "friday");
-assert(Auth.verifyRefreshToken(refreshToken) === true);
+assert(
+  JSON.parse(Auth.verifyAccessToken(accesToken)).email ===
+    "fridaycandours@gmail.com"
+);
+assert(
+  JSON.parse(Auth.verifyRefreshToken(refreshToken)).email ===
+    "fridaycandours@gmail.com"
+);
 
 console.log({
   accesToken,
   refreshToken,
-  accesToken2,
-  accesToken2Data: JSON.parse(Auth.verifyToken(accesToken2)),
-});
-
-export const Aut2 = new SafeToken({
-  encryptionKey: "1fn9P849rIpK82Kj68IZ3G8679fdYX82",
-  rtStoreKey: "_token",
-  rtDays: 90,
-});
-
-// tokens
-accesToken = Auth.newAccessToken();
-accesToken2 = Auth.newAccessToken(JSON.stringify({ name: "friday" }));
-refreshToken = Auth.newRefreshToken();
-// assertions
-assert(Auth.verifyToken(accesToken) === true);
-assert(JSON.parse(Auth.verifyToken(accesToken2)).name === "friday");
-assert(Auth.verifyRefreshToken(refreshToken) === true);
-
-console.log({
-  accesToken,
-  refreshToken,
-  accesToken2,
-  accesToken2Data: JSON.parse(Auth.verifyToken(accesToken2)),
+  accesTokenD: JSON.parse(Auth.verifyAccessToken(accesToken)),
+  refreshTokenD: JSON.parse(Auth.verifyRefreshToken(refreshToken)),
 });
