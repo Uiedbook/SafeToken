@@ -20,7 +20,7 @@ export class SafeToken {
     rtStoreKey?: string;
   }) {
     this.token = SafeToken.create();
-    this.tokenT = init?.timeWindow || 3600;
+    this.tokenT = init?.timeWindow || 3600_000;
     this.refreshT = init?.rtDays || 30;
     this.lastAccessTime = Date.now();
     this.rtStoreKey = init?.rtStoreKey;
@@ -59,7 +59,6 @@ export class SafeToken {
       if (diff.diffSeconds > this.tokenT) {
         this.resetAccessToken();
       }
-      this.token = SafeToken.create();
     });
 
     return (
