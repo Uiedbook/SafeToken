@@ -1,4 +1,4 @@
-import { SafeToken } from "../lib/index.js";
+import { SafeToken } from "../dist/index.js";
 
 const assert = (cond) => {
   if (!cond) throw new Error(` assertion failed`);

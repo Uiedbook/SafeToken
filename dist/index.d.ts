@@ -1,6 +1,4 @@
-import { Buffer } from 'node:buffer';
-
-declare class SafeToken {
+export declare class SafeToken {
     token: string;
     refreshT: number;
     tokenT: number;
@@ -9,7 +7,7 @@ declare class SafeToken {
     lastAccessTime: number;
     rtStoreKey: string;
     key: string;
-    iv: Buffer;
+    iv: any;
     constructor(init?: {
         timeWindow?: number;
         rtDays?: number;
@@ -26,10 +24,8 @@ declare class SafeToken {
         day: number;
         diffSeconds: number;
     };
-    static create(): string;
+    static create(): any;
     static retrToken(rtStoreKey: string): [number, string];
     private dec;
     private enc;
 }
-
-export { SafeToken };
