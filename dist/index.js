@@ -102,19 +102,19 @@ class SafeToken {
   dec(text) {
     if (!this.key)
       throw new Error("Encryption key must be 32 charaters");
-    const decipher = createDecipheriv("aes-256-cbc", Buffer.from(this.key), this.iv);
-    const decrypted = Buffer.concat([
-      decipher.update(Buffer.from(text, "hex")),
-      decipher.final()
-    ]);
-    return decrypted.toString();
+    text = Buffer.from(text, "hex").toString("binary");
+    const decipher = createDecipheriv("aes-256-cbc", this.key, this.iv);
+    let decoded = decipher.update(text, "binary", "utf8");
+    decoded += decipher.final("utf8");
+    return decoded;
   }
   enc(text) {
     if (!this.key)
       throw new Error("Encryption key must be 32 charaters");
-    const cipher = createCipheriv("aes-256-cbc", Buffer.from(this.key), this.iv);
-    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
-    return encrypted.toString("hex");
+    const encipher = createCipheriv("aes-256-cbc", this.key, this.iv);
+    let encryptdata = encipher.update(text, "utf8", "binary");
+    encryptdata += encipher.final("binary");
+    return Buffer.from(encryptdata, "binary").toString("hex");
   }
 }
 export {
