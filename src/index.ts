@@ -22,7 +22,7 @@ export class SafeToken {
     this.token = SafeToken.create();
     this.lastAccessTime = Date.now();
     // ? time window setup
-    this.tokenT = init?.timeWindow || 3600;
+    this.tokenT = init?.timeWindow || 3600000;
     this.refreshT = init?.rtDays || 30;
     // ? refresh file name
     this.rtStoreKey = init?.rtStoreKey || "_refresh_token";
@@ -96,7 +96,10 @@ export class SafeToken {
   resetRefreshToken() {
     this.refreshtoken = SafeToken.create();
     this.lastrefreshTime = Date.now();
-    writeFileSync(this.rtStoreKey, this.refreshT + ":" + this.refreshtoken);
+    writeFileSync(
+      this.rtStoreKey,
+      this.lastrefreshTime + ":" + this.refreshtoken
+    );
   }
   static timeDiff(timestamp: number) {
     const diffSeconds = Math.floor(

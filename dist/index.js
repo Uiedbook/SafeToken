@@ -16,7 +16,7 @@ class SafeToken {
   constructor(init) {
     this.token = SafeToken.create();
     this.lastAccessTime = Date.now();
-    this.tokenT = init?.timeWindow || 3600;
+    this.tokenT = init?.timeWindow || 3600000;
     this.refreshT = init?.rtDays || 30;
     this.rtStoreKey = init?.rtStoreKey || "_refresh_token";
     this.key = typeof init?.encryptionKey === "string" && init.encryptionKey.length === 32 ? init.encryptionKey : "";
@@ -72,7 +72,7 @@ class SafeToken {
   resetRefreshToken() {
     this.refreshtoken = SafeToken.create();
     this.lastrefreshTime = Date.now();
-    writeFileSync(this.rtStoreKey, this.refreshT + ":" + this.refreshtoken);
+    writeFileSync(this.rtStoreKey, this.lastrefreshTime + ":" + this.refreshtoken);
   }
   static timeDiff(timestamp) {
     const diffSeconds = Math.floor(Math.abs(new Date(Date.now()).getTime() - new Date(timestamp).getTime()) / 1000);

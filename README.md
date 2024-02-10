@@ -61,7 +61,7 @@ Auth.resetRefreshToken();
 
 ## Custom Token Lifetimes
 
-Default timeouts are 3600 seconds(access tokens) and 30 day(refresh tokens).
+Default timeouts are 3600000 seconds(access tokens) and 30 day(refresh tokens).
 
 You can customize token expiration times during class instantiation. Adjust the TokenTime and RefreshDays parameters according to your application's requirements.
 
