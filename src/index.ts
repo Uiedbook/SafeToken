@@ -37,7 +37,7 @@ export class SafeToken {
       this.rtStoreKey
     );
   }
-  newAccessToken(data: string = "", _r?: true) {
+  newAccessToken(data: string = "", _r?: true): string {
     if (data) {
       if (typeof data !== "string")
         throw new Error("Data to encrypt must be string type");
@@ -65,7 +65,7 @@ export class SafeToken {
       (data + (_r ? this.refreshtoken : this.token).slice(si - 10, si))
     );
   }
-  newRefreshToken(data: string = "", _r?: true) {
+  newRefreshToken(data: string = "", _r?: true): string {
     const diff = SafeToken.timeDiff(this.lastrefreshTime);
     if (diff.day > this.refreshT) {
       this.resetRefreshToken();

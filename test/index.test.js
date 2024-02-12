@@ -1,7 +1,7 @@
 import { SafeToken } from "../dist/index.js";
 
 const assert = (cond) => {
-  if (!cond) throw new Error(` assertion failed`);
+  if (!cond) throw new Error(`assertion failed`);
 };
 // auth
 const Auth = new SafeToken({
