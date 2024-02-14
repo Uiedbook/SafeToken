@@ -28,6 +28,12 @@ class SafeToken {
         throw new Error("Data to encrypt must be string type");
       data = this.enc(data);
     }
+    if (!_r) {
+      const diff = SafeToken.timeDiff(this.lastAccessTime);
+      if (diff.diffSeconds > this.tokenT) {
+        this.resetAccessToken();
+      }
+    }
     let si = Math.floor(Math.random() * ((_r ? this.refreshtoken.length : this.token.length) - 10 + 1));
     if (String(si).length < 2) {
       si = (si || 1) * 10;
@@ -35,12 +41,6 @@ class SafeToken {
     if (si > this.token.length - 15) {
       si = si - 77;
     }
-    setTimeout(() => {
-      const diff = SafeToken.timeDiff(this.lastAccessTime);
-      if (diff.diffSeconds > this.tokenT) {
-        this.resetAccessToken();
-      }
-    });
     return si + ":" + (data + (_r ? this.refreshtoken : this.token).slice(si - 10, si));
   }
   newRefreshToken(data = "", _r) {
@@ -50,14 +50,16 @@ class SafeToken {
     }
     return this.newAccessToken(data, true);
   }
-  verifyAccessToken(hashString, _r) {
+  verifyAccessToken(hashString, _r = false) {
     let data = true;
     let [si, hash] = (hashString || "").split(":");
     if (!si || !hash)
       return false;
     if (hash.length !== 10) {
-      data = this.dec(hash.slice(0, hash.length - 10));
-      hash = hash.slice(hash.length - 10, hash.length);
+      [hash, data] = [
+        hash.slice(hash.length - 10, hash.length),
+        this.dec(hash.slice(0, hash.length - 10))
+      ];
     }
     const key = (_r ? this.refreshtoken : this.token).slice(Number(si) - 10, Number(si));
     return key === hash && data;
@@ -102,19 +104,19 @@ class SafeToken {
   dec(text) {
     if (!this.key)
       throw new Error("Encryption key must be 32 charaters");
-    text = Buffer.from(text, "hex").toString("binary");
-    const decipher = createDecipheriv("aes-256-cbc", this.key, this.iv);
-    let decoded = decipher.update(text, "binary", "utf8");
-    decoded += decipher.final("utf8");
-    return decoded;
+    const decipher = createDecipheriv("aes-256-cbc", Buffer.from(this.key), this.iv);
+    const decrypted = Buffer.concat([
+      decipher.update(Buffer.from(text, "hex")),
+      decipher.final()
+    ]);
+    return decrypted.toString();
   }
   enc(text) {
     if (!this.key)
       throw new Error("Encryption key must be 32 charaters");
-    const encipher = createCipheriv("aes-256-cbc", this.key, this.iv);
-    let encryptdata = encipher.update(text, "utf8", "binary");
-    encryptdata += encipher.final("binary");
-    return Buffer.from(encryptdata, "binary").toString("hex");
+    const cipher = createCipheriv("aes-256-cbc", Buffer.from(this.key), this.iv);
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    return encrypted.toString("hex");
   }
 }
 export {

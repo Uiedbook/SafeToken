@@ -22,7 +22,7 @@ export class SafeToken {
     this.token = SafeToken.create();
     this.lastAccessTime = Date.now();
     // ? time window setup
-    this.tokenT = init?.timeWindow || 3600000;
+    this.tokenT = init?.timeWindow || 3600_000;
     this.refreshT = init?.rtDays || 30;
     // ? refresh file name
     this.rtStoreKey = init?.rtStoreKey || "_refresh_token";
@@ -43,6 +43,14 @@ export class SafeToken {
         throw new Error("Data to encrypt must be string type");
       data = this.enc(data);
     }
+    // ? invalidate old tokens
+    if (!_r) {
+      const diff = SafeToken.timeDiff(this.lastAccessTime);
+      if (diff.diffSeconds > this.tokenT) {
+        this.resetAccessToken();
+      }
+    }
+    //? create token
     let si = Math.floor(
       Math.random() *
         ((_r ? this.refreshtoken.length : this.token.length) - 10 + 1)
@@ -53,12 +61,7 @@ export class SafeToken {
     if (si > this.token.length - 15) {
       si = si - 77;
     }
-    setTimeout(() => {
-      const diff = SafeToken.timeDiff(this.lastAccessTime);
-      if (diff.diffSeconds > this.tokenT) {
-        this.resetAccessToken();
-      }
-    });
+
     return (
       si +
       ":" +
@@ -72,18 +75,31 @@ export class SafeToken {
     }
     return this.newAccessToken(data, true);
   }
-  verifyAccessToken(hashString: string, _r?: true): string | boolean {
+  verifyAccessToken(hashString: string, _r = false): string | boolean {
     let data = true;
     let [si, hash] = (hashString || "").split(":");
     if (!si || !hash) return false; //? fixed
     if (hash.length !== 10) {
-      data = this.dec(hash.slice(0, hash.length - 10)) as unknown as boolean;
-      hash = hash.slice(hash.length - 10, hash.length);
+      [hash, data] = [
+        hash.slice(hash.length - 10, hash.length),
+        this.dec(hash.slice(0, hash.length - 10)),
+      ];
+      // hash = hash.slice(hash.length - 10, hash.length);
     }
     const key = (_r ? this.refreshtoken : this.token).slice(
       Number(si) - 10,
       Number(si)
     );
+    // if (key !== hash) {
+    //   console.log("Boohoo ==>", {
+    //     key,
+    //     hash,
+    //     _r,
+    //     data,
+    //     si,
+    //     len: this.token.length,
+    //   });
+    // }
     return key === hash && data;
   }
   verifyRefreshToken(hashString: string) {
@@ -132,34 +148,34 @@ export class SafeToken {
   }
   private dec(text: string) {
     if (!this.key) throw new Error("Encryption key must be 32 charaters");
-    // const decipher = createDecipheriv(
-    //   "aes-256-cbc",
-    //   Buffer.from(this.key),
-    //   this.iv
-    // );
-    // const decrypted = Buffer.concat([
-    //   decipher.update(Buffer.from(text, "hex")),
-    //   decipher.final(),
-    // ]);
-    // return decrypted.toString();
-    text = Buffer.from(text, "hex").toString("binary");
-    const decipher = createDecipheriv("aes-256-cbc", this.key, this.iv);
-    let decoded = decipher.update(text, "binary", "utf8");
-    decoded += decipher.final("utf8");
-    return decoded;
+    const decipher = createDecipheriv(
+      "aes-256-cbc",
+      Buffer.from(this.key),
+      this.iv
+    );
+    const decrypted = Buffer.concat([
+      decipher.update(Buffer.from(text, "hex")),
+      decipher.final(),
+    ]);
+    return decrypted.toString();
+    // text = Buffer.from(text, "hex").toString("binary");
+    // const decipher = createDecipheriv("aes-256-cbc", this.key, this.iv);
+    // let decoded = decipher.update(text, "binary", "utf8");
+    // decoded += decipher.final("utf8");
+    // return decoded;
   }
   private enc(text: string) {
     if (!this.key) throw new Error("Encryption key must be 32 charaters");
-    // const cipher = createCipheriv(
-    //   "aes-256-cbc",
-    //   Buffer.from(this.key),
-    //   this.iv
-    // );
-    // const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
-    // return encrypted.toString("hex");
-    const encipher = createCipheriv("aes-256-cbc", this.key, this.iv);
-    let encryptdata = encipher.update(text, "utf8", "binary");
-    encryptdata += encipher.final("binary");
-    return Buffer.from(encryptdata, "binary").toString("hex");
+    const cipher = createCipheriv(
+      "aes-256-cbc",
+      Buffer.from(this.key),
+      this.iv
+    );
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    return encrypted.toString("hex");
+    // const encipher = createCipheriv("aes-256-cbc", this.key, this.iv);
+    // let encryptdata = encipher.update(text, "utf8", "binary");
+    // encryptdata += encipher.final("binary");
+    // return Buffer.from(encryptdata, "binary").toString("hex");
   }
 }

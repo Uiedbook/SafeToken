@@ -16,7 +16,7 @@ export declare class SafeToken {
     });
     newAccessToken(data?: string, _r?: true): string;
     newRefreshToken(data?: string, _r?: true): string;
-    verifyAccessToken(hashString: string, _r?: true): string | boolean;
+    verifyAccessToken(hashString: string, _r?: boolean): string | boolean;
     verifyRefreshToken(hashString: string): string | boolean;
     resetAccessToken(): void;
     resetRefreshToken(): void;

@@ -1,32 +1,39 @@
 import { SafeToken } from "../dist/index.js";
 
-const assert = (cond) => {
+const assert = (cond, ...logs) => {
+  !cond && logs.length && console.log(...logs);
   if (!cond) throw new Error(`assertion failed`);
 };
 // auth
 const Auth = new SafeToken({
   encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  timeWindow: 5,
 });
-// tokens
-let accesToken = Auth.newAccessToken(
-  JSON.stringify({ email: "fridaycandours@gmail.com" })
-);
-let refreshToken = Auth.newRefreshToken(
-  JSON.stringify({ email: "fridaycandours@gmail.com" })
-);
 // assertions
-assert(
-  JSON.parse(Auth.verifyAccessToken(accesToken)).email ===
-    "fridaycandours@gmail.com"
-);
-assert(
-  JSON.parse(Auth.verifyRefreshToken(refreshToken)).email ===
-    "fridaycandours@gmail.com"
-);
-
-console.log({
-  accesToken,
-  refreshToken,
-  accesTokenD: JSON.parse(Auth.verifyAccessToken(accesToken)),
-  refreshTokenD: JSON.parse(Auth.verifyRefreshToken(refreshToken)),
-});
+console.time("t");
+for (let t = 0; t < 1_00_000; t++) {
+  // tokens
+  let refreshToken = Auth.newRefreshToken(
+    JSON.stringify({ email: "fridaycandours@gmail.com" })
+  );
+  let accesToken = Auth.newAccessToken(
+    JSON.stringify({ email: "fridaycandours@gmail.com" })
+  );
+  assert(
+    JSON.parse(Auth.verifyAccessToken(accesToken)).email ===
+      "fridaycandours@gmail.com"
+  );
+  assert(
+    JSON.parse(Auth.verifyRefreshToken(refreshToken)).email ===
+      "fridaycandours@gmail.com",
+    JSON.parse(Auth.verifyRefreshToken(refreshToken))
+  );
+  // console.log(t);
+}
+console.timeEnd("t");
+// console.log({
+//   accesToken,
+//   refreshToken,
+//   accesTokenD: JSON.parse(Auth.verifyAccessToken(accesToken)),
+//   refreshTokenD: JSON.parse(Auth.verifyRefreshToken(refreshToken)),
+// });
