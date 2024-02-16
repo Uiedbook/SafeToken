@@ -28,11 +28,7 @@ export class SafeToken {
     // ? refresh file name
     this.rtStoreKey = init?.rtStoreKey || "_refresh_token";
     //? setup encryption keys
-    this.key =
-      typeof init?.encryptionKey === "string" &&
-      init.encryptionKey.length === 32
-        ? init.encryptionKey
-        : "";
+    this.key = init?.encryptionKey || "";
     // ? retrieve last refresh tokens
     [this.lastrefreshTime, this.refreshtoken] = SafeToken.retrToken(
       this.rtStoreKey
@@ -148,10 +144,11 @@ export class SafeToken {
       throw new Error("Could not decrypt message");
     }
     const base64DecryptedMessage = encodeUTF8(decrypted);
-    return JSON.parse(base64DecryptedMessage);
+    return base64DecryptedMessage;
   }
   private enc(msg: string) {
     const ku8arr = decodeBase64(this.key);
+
     const nonce = randomBytes(secretbox.nonceLength);
     const msgu8 = decodeUTF8(msg);
     const box = secretbox(msgu8, nonce, ku8arr);

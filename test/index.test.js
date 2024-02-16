@@ -1,14 +1,12 @@
 import { SafeToken, generateKey } from "../dist/index.js";
 
-console.log(generateKey().length);
-
 const assert = (cond, ...logs) => {
   !cond && logs.length && console.log(...logs);
   if (!cond) throw new Error(`assertion failed`);
 };
 // auth
 const Auth = new SafeToken({
-  encryptionKey: "zFeoXP1gvvfE+Y+EV4lE/0j6GE5BuMWeVwEqyeNb2gU=",
+  encryptionKey: generateKey(),
   timeWindow: 3600_000,
   rtDays: 365,
 });
@@ -23,8 +21,8 @@ for (let t = 0; t < 1_00_000; t++) {
     JSON.stringify({ email: "fridaycandours@gmail.com" })
   );
   console.log({
-    // refreshToken,
-    // accesToken,
+    refreshToken,
+    accesToken,
     aa: Auth.verifyAccessToken(accesToken),
     rt: Auth.verifyRefreshToken(refreshToken),
   });
