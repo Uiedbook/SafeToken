@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import { Buffer } from "node:buffer";
 export declare class SafeToken {
     token: string;
     refreshT: number;
@@ -7,7 +9,7 @@ export declare class SafeToken {
     lastAccessTime: number;
     rtStoreKey: string;
     key: string;
-    iv: any;
+    iv: Buffer;
     constructor(init?: {
         timeWindow?: number;
         rtDays?: number;
@@ -22,10 +24,10 @@ export declare class SafeToken {
     resetRefreshToken(): void;
     static timeDiff(timestamp: number): {
         day: number;
-        diffSeconds: number;
+        ms: number;
     };
-    static create(): any;
-    static retrToken(rtStoreKey: string): [number, string];
+    static create(): string;
+    static retrToken(rtStoreKey: string): [number, Buffer, string];
     private dec;
     private enc;
 }

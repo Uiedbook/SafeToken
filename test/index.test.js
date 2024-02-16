@@ -7,7 +7,8 @@ const assert = (cond, ...logs) => {
 // auth
 const Auth = new SafeToken({
   encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  timeWindow: 5,
+  timeWindow: 3600_000,
+  rtDays: 365,
 });
 // assertions
 console.time("t");
@@ -19,6 +20,12 @@ for (let t = 0; t < 1_00_000; t++) {
   let accesToken = Auth.newAccessToken(
     JSON.stringify({ email: "fridaycandours@gmail.com" })
   );
+  console.log({
+    // refreshToken,
+    // accesToken,
+    aa: Auth.verifyAccessToken(accesToken),
+    rt: Auth.verifyRefreshToken(refreshToken),
+  });
   assert(
     JSON.parse(Auth.verifyAccessToken(accesToken)).email ===
       "fridaycandours@gmail.com"

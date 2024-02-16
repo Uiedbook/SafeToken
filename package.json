@@ -31,5 +31,8 @@
   "homepage": "https://github.com/fridaycandour/safeToken",
   "devDependencies": {
     "@types/node": "^18.7.15"
+  },
+  "dependencies": {
+    "tweetnacl": "^1.0.3"
   }
 }
