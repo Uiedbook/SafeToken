@@ -1,6 +1,4 @@
-import { SafeToken, generateKey } from "../dist/index.js";
-
-console.log(generateKey().length);
+import { SafeToken } from "../dist/index.js";
 
 const assert = (cond, ...logs) => {
   !cond && logs.length && console.log(...logs);
@@ -8,10 +6,11 @@ const assert = (cond, ...logs) => {
 };
 // auth
 const Auth = new SafeToken({
-  encryptionKey: "zFeoXP1gvvfE+Y+EV4lE/0j6GE5BuMWeVwEqyeNb2gU=",
+  encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
   timeWindow: 3600_000,
   rtDays: 365,
 });
+console.log(Auth);
 // assertions
 console.time("t");
 for (let t = 0; t < 1_00_000; t++) {

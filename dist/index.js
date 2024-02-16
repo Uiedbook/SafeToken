@@ -1,8 +1,6 @@
+import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { Buffer } from "node:buffer";
 import { readFileSync, writeFileSync } from "node:fs";
-import pkg1 from "tweetnacl";
-import pkg2 from "tweetnacl-util";
-const { secretbox, randomBytes } = pkg1;
-const { decodeUTF8, encodeUTF8, encodeBase64, decodeBase64 } = pkg2;
 export class SafeToken {
     token;
     refreshT;
@@ -12,6 +10,7 @@ export class SafeToken {
     lastAccessTime;
     rtStoreKey = "_refresh_token";
     key;
+    iv = randomBytes(16);
     constructor(init) {
         // ? reset access tokens
         this.token = SafeToken.create();
@@ -28,7 +27,7 @@ export class SafeToken {
                 ? init.encryptionKey
                 : "";
         // ? retrieve last refresh tokens
-        [this.lastrefreshTime, this.refreshtoken] = SafeToken.retrToken(this.rtStoreKey);
+        [this.lastrefreshTime, this.iv, this.refreshtoken] = SafeToken.retrToken(this.rtStoreKey);
     }
     newAccessToken(data = "", _r) {
         if (data) {
@@ -89,7 +88,7 @@ export class SafeToken {
     resetRefreshToken() {
         this.refreshtoken = SafeToken.create();
         this.lastrefreshTime = Date.now();
-        writeFileSync(this.rtStoreKey, this.lastrefreshTime + ":" + ":" + this.refreshtoken);
+        writeFileSync(this.rtStoreKey, this.lastrefreshTime + ":" + this.iv.toString() + ":" + this.refreshtoken);
     }
     static timeDiff(timestamp) {
         const ms = Math.floor(Math.abs(new Date(Date.now()).getTime() - new Date(timestamp).getTime()));
@@ -100,46 +99,52 @@ export class SafeToken {
     }
     static create() {
         // 500 =  1k(min), 1000 = 2k(max) gen string length
-        return randomBytes(Math.max(Math.random() * 999, 499)).toString();
+        return randomBytes(Math.max(Math.random() * 999, 499)).toString("hex");
     }
     static retrToken(rtStoreKey) {
-        let rt = [Date.now(), SafeToken.create()];
+        let rt = [
+            Date.now(),
+            randomBytes(16),
+            SafeToken.create(),
+        ];
         try {
             const data = readFileSync(rtStoreKey, {
                 encoding: "utf8",
             });
             if (data) {
                 const [date, iv, lastStoredToken] = data.split(":");
-                rt = [Number(date), lastStoredToken];
+                rt = [Number(date), Buffer.from(iv), lastStoredToken];
             }
         }
         catch (error) {
-            writeFileSync(rtStoreKey, rt[0] + ":" + rt[1]);
+            writeFileSync(rtStoreKey, rt[0] + ":" + rt[1].toString() + ":" + rt[2]);
         }
         return rt;
     }
-    dec(msg) {
-        const ku8arr = decodeBase64(this.key);
-        const msgu8 = decodeBase64(msg);
-        const nonce = msgu8.slice(0, secretbox.nonceLength);
-        const message = msgu8.slice(secretbox.nonceLength, msg.length);
-        const decrypted = secretbox.open(message, nonce, ku8arr);
-        if (!decrypted) {
-            throw new Error("Could not decrypt message");
-        }
-        const base64DecryptedMessage = encodeUTF8(decrypted);
-        return JSON.parse(base64DecryptedMessage);
+    dec(text) {
+        if (!this.key)
+            throw new Error("Encryption key must be 32 charaters");
+        const decipher = createDecipheriv("aes-256-cbc", Buffer.from(this.key), this.iv.toString());
+        const decrypted = Buffer.concat([
+            decipher.update(Buffer.from(text, "hex")),
+            decipher.final(),
+        ]);
+        return decrypted.toString();
+        // text = Buffer.from(text, "hex").toString("binary");
+        // const decipher = createDecipheriv("aes-256-cbc", this.key, this.iv);
+        // let decoded = decipher.update(text, "binary", "utf8");
+        // decoded += decipher.final("utf8");
+        // return decoded;
     }
-    enc(msg) {
-        const ku8arr = decodeBase64(this.key);
-        const nonce = randomBytes(secretbox.nonceLength);
-        const msgu8 = decodeUTF8(msg);
-        const box = secretbox(msgu8, nonce, ku8arr);
-        const fm = new Uint8Array(nonce.length + box.length);
-        fm.set(nonce);
-        fm.set(box, nonce.length);
-        const base64fm = encodeBase64(fm);
-        return base64fm;
+    enc(text) {
+        if (!this.key)
+            throw new Error("Encryption key must be 32 charaters");
+        const cipher = createCipheriv("aes-256-cbc", Buffer.from(this.key), this.iv.toString());
+        const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+        return encrypted.toString("hex");
+        // const encipher = createCipheriv("aes-256-cbc", this.key, this.iv);
+        // let encryptdata = encipher.update(text, "utf8", "binary");
+        // encryptdata += encipher.final("binary");
+        // return Buffer.from(encryptdata, "binary").toString("hex");
     }
 }
-export const generateKey = () => encodeBase64(randomBytes(secretbox.keyLength));

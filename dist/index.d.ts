@@ -1,3 +1,5 @@
+/// <reference types="node" resolution-mode="require"/>
+import { Buffer } from "node:buffer";
 export declare class SafeToken {
     token: string;
     refreshT: number;
@@ -7,6 +9,7 @@ export declare class SafeToken {
     lastAccessTime: number;
     rtStoreKey: string;
     key: string;
+    iv: Buffer;
     constructor(init?: {
         timeWindow?: number;
         rtDays?: number;
@@ -24,8 +27,7 @@ export declare class SafeToken {
         ms: number;
     };
     static create(): string;
-    static retrToken(rtStoreKey: string): [number, string];
+    static retrToken(rtStoreKey: string): [number, Buffer, string];
     private dec;
     private enc;
 }
-export declare const generateKey: () => string;
