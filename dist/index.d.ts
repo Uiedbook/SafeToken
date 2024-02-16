@@ -1,4 +1,4 @@
-/// <reference types="node" resolution-mode="require"/>
+/// <reference types="node" />
 import { Buffer } from "node:buffer";
 export declare class SafeToken {
     token: string;
