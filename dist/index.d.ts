@@ -1,12 +1,12 @@
 export declare class SafeToken {
-    token: string;
-    refreshT: number;
-    tokenT: number;
-    refreshtoken: string;
-    lastrefreshTime: number;
-    lastAccessTime: number;
-    rtStoreKey: string;
-    key: string;
+    private FA_token;
+    private FR_token;
+    private refreshTime;
+    private accessTime;
+    private lastrefreshTime;
+    private lastAccessTime;
+    private rtStoreKey;
+    private key;
     constructor(init?: {
         timeWindow?: number;
         rtDays?: number;

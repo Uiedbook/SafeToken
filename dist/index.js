@@ -4,27 +4,31 @@ import pkg2 from "tweetnacl-util";
 const { secretbox, randomBytes } = pkg1;
 const { decodeUTF8, encodeUTF8, encodeBase64, decodeBase64 } = pkg2;
 export class SafeToken {
-    token;
-    refreshT;
-    tokenT;
-    refreshtoken;
+    // ? full token
+    FA_token;
+    FR_token;
+    refreshTime;
+    accessTime;
+    // ? access time
     lastrefreshTime;
     lastAccessTime;
-    rtStoreKey = "_refresh_token";
+    // ? FR key
+    rtStoreKey = "_safetoken";
     key;
     constructor(init) {
         // ? reset access tokens
-        this.token = SafeToken.create();
+        this.FA_token = SafeToken.create();
         this.lastAccessTime = Date.now();
         // ? time window setup
-        this.tokenT = init?.timeWindow || 3600_000;
-        this.refreshT = init?.rtDays || 29;
+        this.accessTime = init?.timeWindow || 3600_000;
+        this.refreshTime = init?.rtDays || 29;
         // ? refresh file name
-        this.rtStoreKey = init?.rtStoreKey || "_refresh_token";
+        if (init?.rtStoreKey)
+            this.rtStoreKey = init.rtStoreKey;
         //? setup encryption keys
         this.key = init?.encryptionKey || "";
         // ? retrieve last refresh tokens
-        [this.lastrefreshTime, this.refreshtoken] = SafeToken.retrToken(this.rtStoreKey);
+        [this.lastrefreshTime, this.FR_token] = SafeToken.retrToken(this.rtStoreKey);
     }
     newAccessToken(data = "", _r) {
         if (data) {
@@ -34,19 +38,19 @@ export class SafeToken {
         }
         //? create token
         let si = Math.floor(Math.random() *
-            ((_r ? this.refreshtoken.length : this.token.length) - 10 + 1));
+            ((_r ? this.FR_token.length : this.FA_token.length) - 10 + 1));
         if (String(si).length < 2) {
             si = (si || 1) * 10;
         }
-        if (_r && si > this.refreshtoken.length - 15) {
+        if (_r && si > this.FR_token.length - 15) {
             si = si - 77;
         }
-        if (!_r && si > this.token.length - 15) {
+        if (!_r && si > this.FA_token.length - 15) {
             si = si - 77;
         }
         return (si +
             ":" +
-            (data + (_r ? this.refreshtoken : this.token).slice(si - 10, si)));
+            (data + (_r ? this.FR_token : this.FA_token).slice(si - 10, si)));
     }
     newRefreshToken(data = "", _r) {
         return this.newAccessToken(data, true);
@@ -54,7 +58,7 @@ export class SafeToken {
     verifyAccessToken(hashString, _r = false) {
         if (!_r) {
             const diff = SafeToken.timeDiff(this.lastAccessTime);
-            if (diff.ms > this.tokenT) {
+            if (diff.ms > this.accessTime) {
                 this.resetAccessToken();
             }
         }
@@ -68,24 +72,24 @@ export class SafeToken {
                 this.dec(hash.slice(0, hash.length - 10)),
             ];
         }
-        const key = (_r ? this.refreshtoken : this.token).slice(Number(si) - 10, Number(si));
+        const key = (_r ? this.FR_token : this.FA_token).slice(Number(si) - 10, Number(si));
         return key === hash && data;
     }
     verifyRefreshToken(hashString) {
         const diff = SafeToken.timeDiff(this.lastrefreshTime);
-        if (diff.day > this.refreshT) {
+        if (diff.day > this.refreshTime) {
             this.resetRefreshToken();
         }
         return this.verifyAccessToken(hashString, true);
     }
     resetAccessToken() {
-        this.token = SafeToken.create();
+        this.FA_token = SafeToken.create();
         this.lastAccessTime = Date.now();
     }
     resetRefreshToken() {
-        this.refreshtoken = SafeToken.create();
+        this.FR_token = SafeToken.create();
         this.lastrefreshTime = Date.now();
-        writeFileSync(this.rtStoreKey, this.lastrefreshTime + ":" + ":" + this.refreshtoken);
+        writeFileSync(this.rtStoreKey, this.lastrefreshTime + ":" + ":" + this.FR_token);
     }
     static timeDiff(timestamp) {
         const ms = Math.floor(Math.abs(new Date(Date.now()).getTime() - new Date(timestamp).getTime()));
@@ -105,8 +109,13 @@ export class SafeToken {
                 encoding: "utf8",
             });
             if (data) {
-                const [date, iv, lastStoredToken] = data.split(":");
-                rt = [Number(date), lastStoredToken];
+                const [date, lastStoredToken] = data.split(":");
+                if (data && lastStoredToken) {
+                    rt = [Number(date), lastStoredToken];
+                }
+                else {
+                    writeFileSync(rtStoreKey, rt[0] + ":" + rt[1]);
+                }
             }
         }
         catch (error) {
