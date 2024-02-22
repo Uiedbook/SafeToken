@@ -1,4 +1,4 @@
-var CryptoJS = require("crypto-js");
+import CryptoJS from "crypto-js";
 export class SafeToken {
     // ? full token
     refreshTime;

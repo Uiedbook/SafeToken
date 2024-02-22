@@ -10,7 +10,7 @@ export declare class SafeToken {
     newAccessToken(data?: string): string;
     newRefreshToken(data: string): string;
     verifyAccessToken(hash: string): string | boolean;
-    verifyRefreshToken(hash: string): any;
+    verifyRefreshToken(hash: string): string | false;
     static IsIntime(number: number, lastTime: string, r?: boolean): boolean;
     static encode_timestamp(): string;
 }
