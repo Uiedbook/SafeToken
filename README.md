@@ -28,8 +28,7 @@ Refresh tokens can stored to disk with the rtStoreKey: fine-name option.
 // in auth.js
 import { SafeToken } from "safetoken";
 const Auth = new SafeToken({
-  encryptionKey: "xfn9P8L9rIpKtWKj68IZ3G865WfdYXNY",
-  refreshTokenPath: "_token",
+  encryptionKey: "xfn9P8L9rIpKtWKj68IZ3G865WfdYXNY", 
 });
 ```
 

@@ -1,4 +1,4 @@
-import { SafeToken } from "../dist/index.js";
+import { SafeToken } from "./dist/index.js";
 
 const assert = (cond, ...logs) => {
   !cond && logs.length && console.log(...logs);
@@ -17,10 +17,10 @@ console.time("t");
 let refreshToken = Auth.newRefreshToken(
   JSON.stringify({ email: "fridaycandours@gmail.com" })
 );
-console.timeEnd("t");
 let accesToken = Auth.newAccessToken(
   JSON.stringify({ email: "fridaycandours@gmail.com" })
 );
+console.timeEnd("t");
 console.log({
   accesToken,
   refreshToken,
