@@ -44,6 +44,26 @@ export class SafeToken {
     }
     // return CryptoJS.AES.decrypt(token, this.key).toString(CryptoJS.enc.Utf8);
   }
+  async function decryptData(encryptedData: string) {
+  try {
+    const encryptedDataBuff = base64_to_buf(encryptedData);
+    const salt = encryptedDataBuff.slice(0, 16);
+    const iv = encryptedDataBuff.slice(16, 16 + 12);
+    const data = encryptedDataBuff.slice(16 + 12); 
+    const decryptedContent = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: iv,
+      },
+      this.key,
+      data
+    );
+    return dec.decode(decryptedContent);
+  } catch (e) {
+    console.log(`Error - ${e}`);
+    return "";
+  }
+}
   static IsIntime(number: number, lastTime: string, r?: boolean): boolean {
     const ms = Math.floor(
       Math.abs(

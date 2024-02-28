@@ -14,28 +14,28 @@ const base64_to_buf = (b64: string) =>
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
-// const getPasswordKey = (password: string) =>
-//   crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, [
-//     "deriveKey",
-//   ]);
+const getPasswordKey = (password: string) =>
+  crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, [
+    "deriveKey",
+  ]);
 
-// const deriveKey = (
-//   passwordKey: CryptoKey,
-//   salt: Uint8Array,
-//   keyUsage: Iterable<KeyUsage>
-// ) =>
-//   crypto.subtle.deriveKey(
-//     {
-//       name: "PBKDF2",
-//       salt: salt,
-//       iterations: 250000,
-//       hash: "SHA-256",
-//     },
-//     passwordKey,
-//     { name: "AES-GCM", length: 256 },
-//     false,
-//     keyUsage
-//   );
+const deriveKey = (
+  passwordKey: CryptoKey,
+  salt: Uint8Array,
+  keyUsage: Iterable<KeyUsage>
+) =>
+  crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: 250000,
+      hash: "SHA-256",
+    },
+    passwordKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    keyUsage
+  );
 
 async function encryptData(secretData: string, password: string) {
   try {
