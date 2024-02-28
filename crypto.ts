@@ -89,3 +89,10 @@ async function decryptData(encryptedData: string, password: string) {
     return "";
   }
 }
+
+console.time();
+const a = await encryptData("boohoo", "1");
+const b = await decryptData(a, "1");
+console.timeEnd();
+console.log({ a, b });
+export {};
