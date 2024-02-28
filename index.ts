@@ -1,5 +1,3 @@
-import CryptoJS from "crypto-js";
-
 export class SafeToken {
   // ? full token
   private refreshTime: number;

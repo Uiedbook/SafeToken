@@ -30,10 +30,6 @@
   "license": "MIT",
   "homepage": "https://github.com/fridaycandour/safeToken",
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
     "@types/node": "^18.7.15"
-  },
-  "dependencies": {
-    "crypto-js": "^4.2.0"
   }
 }
