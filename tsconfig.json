@@ -1,12 +1,29 @@
 {
   "compilerOptions": {
-    "module": "esnext",
-    "target": "esnext",
-    "lib": ["esnext", "ES2023"],
-    "moduleResolution": "NodeNext",
+    // enable latest features
+    "lib": ["es2022", "esnext", "dom", "dom.iterable"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "allowJs": true,
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    // "noEmit": true,
     "declaration": true,
+
+    // Best practices
     "strict": true,
-    "outDir": "dist"
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Some stricter flags
+    "useUnknownInCatchVariables": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "outDir": "./dist"
   },
   "include": ["index.ts"]
 }

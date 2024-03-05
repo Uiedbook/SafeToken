@@ -3,5 +3,5 @@
  
 echo  "  Packing ...."
 tsc  
-npm pack
+npm pack 
 mv **.tgz ~/
