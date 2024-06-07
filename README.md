@@ -2,73 +2,86 @@
 
 SafeToken is a simplest Auth for generating secure tokens suitable for authentication purposes.
 
-We use it to create access tokens and refresh tokens that is verifirable and store encrypted data.
-
-We can invalidate the tokens anytime by just calling resetToken.
+We use it to create access tokens and refresh tokens that is verifirable and store signed data.
 
 SafeToken is easy for everyone.
 
 ## Features
 
-- **Secure Token Generation:** Utilizes cryptographic token generation.
+- **Secure Tokens:** Utilizes cryptographic signature.
+- **Modern api** Built using modern nodejs crypto APIs.
+- **Most fastest** Blazingly fast .create .verify methods.
+- **Fully Typed** SafeToken is written in typescript and fully typed.
 - **Super light-weight** 2KB~ size minified and fast token creation and verification logic.
-- **Auto Token Expiry Management:** Tokens have configurable expiration times.
-- **Refresh Token Support:** Generates refresh tokens for secure token refresh mechanisms.
-- **Most fastest** create token and verify token functionality ever.
 
 ## How It Works
 
-The `SafeToken` class provides methods for generating access and refresh tokens. Tokens are generated using crypto to enhance security. Token expiration is managed, and new tokens can be generated based on configured time intervals.
-
-Refresh tokens can stored to disk with the rtStoreKey: fine-name option.
+The `SafeToken` class provides methods for generating tokens. Tokens are generated using crypto to enhance security. Token expiration is managed, and new tokens can be generated based on configured time intervals.
 
 ## Usage
 
 ```js
 // in auth.js
-import { SafeToken } from "safetoken";
 const Auth = new SafeToken({
-  encryptionKey: "xfn9P8L9rIpKtWKj68IZ3G865WfdYXNY", 
+  secret: "9494d249ad9fd041f9d052e0d0b9c9e7e45bfc3f",
 });
 ```
 
-## Creating a New Token
+## Creating a token
 
 ```js
-//create a new access token
-const accesToken = Auth.newAccessToken(JSON.stringify({ name: "friday" }));
-// Generate a refresh token
-const refreshToken = Auth.newRefreshToken(JSON.stringify({ name: "friday" }));
+let token = Auth.create({ email: "johndoe@gmail.com" });
+console.log({
+  token,
+});
 ```
 
 ## Verifying a Token
 
 ```js
-const user_A = JSON.parse(Auth.verifyAccessToken(accesToken));
-const user_R = JSON.parse(Auth.verifyRefreshToken(refreshToken));
-console.log(user_A, user_R); // same thing
+console.log({
+  decodedToken: Auth.verify(token),
+});
+
+//? only decode doesn't verify
+console.log({
+  decodedToken: Auth.decode(token),
+});
 ```
 
-## Resetting Tokens
+## Custom Token Lifetimes Example
 
-```js
-// revoke access tokens
-Auth.resetAccessToken();
-// revoke refresh tokens
-Auth.resetRefreshToken();
-```
+The default timeout is 3600000 miniseconds = 1 hour.
 
-## Custom Token Lifetimes
+You can customize token expiration times during class instantiation. by provide timewindows according to your application's requirements.
 
-Default timeouts are 3600000 seconds(access tokens) and 30 day(refresh tokens).
-
-You can customize token expiration times during class instantiation. Adjust the TokenTime and RefreshDays parameters according to your application's requirements.
+### creating custom time windows
 
 ```js
 // Example of customizing token lifetimes
-const Auth = new SecureToken({
-  TokenTime: 900, // Set access token lifetime to 15 minutes (in seconds)
-  RefreshDays: 7, // Set refresh token lifetime to 7 days
+const Auth2 = new SafeToken({
+  secret: "9494d249ad9fd041f9d052e0d0b9c9e7e45bfc3f",
+  // your custom time windows
+  timeWindows: {
+    // ? all provided in miliseconds
+    access: 3600000 /*1 hour*/,
+    refresh: 2592000000 /*1 month*/,
+  },
+});
+```
+
+### Usaging custom time windows
+
+```js
+let accessToken = Auth2.create({ email: "fridaycandours@gmail.com" });
+let refreshToken = Auth2.create({ email: "fridaycandours@gmail.com" });
+console.log({
+  accessToken,
+  refreshToken,
+});
+console.log({
+  decodedAccessToken: Auth2.verify(accessToken, "access"),
+  decodedRefreshToken: Auth2.verify(refreshToken, "refresh"),
 });
 ```
 
@@ -78,36 +91,9 @@ const Auth = new SecureToken({
 npm i safetoken
 ```
 
-## test
-
-```js
-import { SafeToken } from "safetoken";
-
-const assert = (cond) => {
-  if (!cond) throw new Error(`assertion failed`);
-};
-// auth
-const Auth = new SafeToken({
-  encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-});
-// tokens
-let accesToken = Auth.newAccessToken(JSON.stringify({ name: "friday" }));
-let refreshToken = Auth.newRefreshToken(JSON.stringify({ name: "friday" }));
-// assertions
-assert(JSON.parse(Auth.verifyAccessToken(accesToken)).name === "friday");
-assert(JSON.parse(Auth.verifyRefreshToken(refreshToken)).name === "friday");
-
-console.log({
-  accesToken,
-  refreshToken,
-  accesTokenD: JSON.parse(Auth.verifyAccessToken(accesToken)),
-  refreshTokenD: JSON.parse(Auth.verifyRefreshToken(refreshToken)),
-});
-```
-
 ## Contributing
 
-This library provides a simple and secure way to manage authetication tokens with built-in encryption for added security.
+This library provides a simple and secure way to manage authetication tokens with built-in cryptographic encryption for added security.
 
 If you find any issues or have suggestions for improvements, feel free to contribute by opening an issue or submitting a pull request.
 
@@ -119,10 +105,9 @@ Feel free to adjust the information based on your project's specific considerati
 
 ## Pizza Area
 
-<a href="https://www.buymeacoffee.com/fridaycandour"><img src="https://img.buymeacoffee.com/button-api/?text=Buy us a coffee&emoji=&slug=fridaycandour&button_colour=FFDD00&font_colour=000000&outline_colour=000000&coffee_colour=ffffff" /></a>
+Support me via cryptos -
 
-cryptos -
-
-- etheruen:0xD7DDD4312A4e514751A582AF725238C7E6dF206c
-- Bitcoin: bc1q5548kdanwyd3y07nyjjzt5zkdxqec4nqqrd760
-- LTC: ltc1qgqn6nqq6x555rpj3pw847402aw6kw7a25dc29w.
+- Bitcoin: bc1q228fnx44ha9y5lvtku70pjgaeh2jj3f867nwye
+- etheruen: 0xd067560fDed3B1f3244d460d5E3011BC42C4E5d7
+- LTC: ltc1quvc04rpmsurvss6ll54fvdgyh95p5kf74wppa6
+- TRX: THag6WuG4EoiB911ce9ELgN3p7DibtS6vP

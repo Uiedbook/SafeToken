@@ -1,119 +1,100 @@
-export class SafeToken {
-  // ? full token
-  private refreshTime: number;
-  private accessTime: number;
-  private key: string;
-  private salt: string;
-  constructor(init: {
-    timeWindow: number;
-    rtDays: number;
-    encryptionKey: string;
-  }) {
-    // ? time window setup
-    this.accessTime = init?.timeWindow || 3600_000;
-    this.refreshTime = init?.rtDays || 29;
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    this.salt = salt;
-    //? setup encryption keys
-    this.key = SafeToken.deriveKey(init.encryptionKey, salt);
-  }
-  newAccessToken(data: string = ""): string {
-    if (data) {
-      if (typeof data !== "string")
-        throw new Error("Data to encrypt must be string type");
-    }
-    return (
-      SafeToken.encode_timestamp() +
-      // CryptoJS.AES.encrypt(data, this.key).toString()
-    );
-  }
-  newRefreshToken(data: string): string {
-    return this.newAccessToken(data);
-  }
-  verifyAccessToken(hash: string): string | boolean {
-    const [time, token] = [hash.slice(0, 8), hash.slice(8)];
-    if (!SafeToken.IsIntime(this.accessTime, time)) {
-      return false;
-    }
-    // return CryptoJS.AES.decrypt(token, this.key).toString(CryptoJS.enc.Utf8);
-  }
-  verifyRefreshToken(hash: string) {
-    const [time, token] = [hash.slice(0, 8), hash.slice(8)];
-    if (!SafeToken.IsIntime(this.refreshTime, time, true)) {
-      return false;
-    }
-    // return CryptoJS.AES.decrypt(token, this.key).toString(CryptoJS.enc.Utf8);
-  }
-  async function decryptData(encryptedData: string) {
-  try {
-    const encryptedDataBuff = base64_to_buf(encryptedData);
-    const salt = encryptedDataBuff.slice(0, 16);
-    const iv = encryptedDataBuff.slice(16, 16 + 12);
-    const data = encryptedDataBuff.slice(16 + 12); 
-    const decryptedContent = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: iv,
-      },
-      this.key,
-      data
-    );
-    return dec.decode(decryptedContent);
-  } catch (e) {
-    console.log(`Error - ${e}`);
-    return "";
-  }
-}
-  static IsIntime(number: number, lastTime: string, r?: boolean): boolean {
-    const ms = Math.floor(
-      Math.abs(
-        new Date(Date.now()).getTime() -
-          new Date(parseInt(lastTime, 16) * 1000).getTime()
-      )
-    );
-    if (r) {
-      if (number > Math.round(ms / 86400_000)) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      if (number > ms) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-  static encode_timestamp(): string {
-    const time = ~~(new Date().getTime() / 1000);
-    const buffer = Buffer.alloc(4);
-    // 4-byte timestamp
-    buffer[3] = time & 0xff;
-    buffer[2] = (time >> 8) & 0xff;
-    buffer[1] = (time >> 16) & 0xff;
-    buffer[0] = (time >> 24) & 0xff;
-    return buffer.toString("hex");
-  }
-  static async deriveKey(password: string, salt): string {
-        const passwordKey =  await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, [
-    "deriveKey",
-  ]);
-    const aesKey = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 250000,
-      hash: "SHA-256",
-    },
-    passwordKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt"]
-  ) 
+import { createHmac } from "node:crypto";
 
-    return aesKey;
+// TODO: implement SafeToken.adjust(timeWindowKey: string)\
+// for invalidating token time range
+
+export class SafeToken<
+  TimeWindow extends Record<string, number> = { access: number }
+> {
+  private timeWindow: TimeWindow;
+  private secret: string;
+  constructor(init: { timeWindows?: TimeWindow; secret: string }) {
+    if (!init.secret) {
+      throw new Error("Please provide safetoken secret");
+    }
+    this.secret = init.secret;
+    this.timeWindow =
+      init.timeWindows ||
+      ({ access: 3600000 /*1 hour*/ } as unknown as TimeWindow); //? default time window
+  }
+  create(data: Record<string, string | number | boolean> = {}) {
+    return createHmacSha256Signature(data, this.secret, timestamp());
+  }
+
+  verify(token: string, timeWindowKey: keyof TimeWindow = "access") {
+    if (typeof token === "string") {
+      return verifyToken(token, this.secret, this.timeWindow[timeWindowKey]);
+    }
+    if (!token) {
+      throw new Error("Invalid token");
+    }
+  }
+  decode(token: string) {
+    const buf = Buffer.from(token.split(".")[2], "base64").toString("utf-8");
+    return JSON.parse(buf);
   }
 }
 
- 
+function createHmacSha256Signature(
+  payload: Record<string, string | number | boolean>,
+  secret: string,
+  time: string
+) {
+  const tbuf = rep(Buffer.from(time).toString("base64"));
+  const dataToSign = rep(
+    Buffer.from(JSON.stringify(payload)).toString("base64")
+  );
+  const data = rep(Buffer.from(JSON.stringify(payload)).toString("base64"));
+  const signature = rep(
+    createHmac("sha256", secret)
+      .update(dataToSign + tbuf)
+      .digest("base64")
+  );
+  return `${time}.${signature}.${data}`;
+}
+
+function verifyToken(token: string, secret: string, timeWindow: number) {
+  const [time, signature, data] = token.split(".");
+  //? time check
+  if (!IsIntime(timeWindow, time)) {
+    throw new Error("Token expired");
+  }
+  // ? would fail if the <time> is different from what's in the expected signature
+  const dataToSign = data + rep(Buffer.from(time).toString("base64"));
+  // ? signature check
+  const expectedSignature = rep(
+    createHmac("sha256", secret).update(dataToSign).digest("base64")
+  );
+  if (signature === expectedSignature) {
+    const buf = Buffer.from(data, "base64").toString("utf-8");
+    return JSON.parse(buf);
+  }
+  throw new Error("Invalid token");
+}
+
+const IsIntime = (number: number, lastTime: string): boolean => {
+  if (!number) {
+    throw new Error("Invalid time window");
+  }
+  const ms = Math.floor(
+    Math.abs(
+      new Date(Date.now()).getTime() -
+        new Date(parseInt(lastTime, 16) * 1000).getTime()
+    )
+  );
+  return number > ms;
+};
+
+const timestamp = (): string => {
+  const time = ~~(new Date().getTime() / 1000);
+  const buffer = Buffer.alloc(4);
+  // 4-byte timestamp
+  buffer[3] = time & 0xff;
+  buffer[2] = (time >> 8) & 0xff;
+  buffer[1] = (time >> 16) & 0xff;
+  buffer[0] = (time >> 24) & 0xff;
+  return buffer.toString("hex");
+};
+
+const rep = (a: string) =>
+  a.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");

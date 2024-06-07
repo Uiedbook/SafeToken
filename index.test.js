@@ -4,26 +4,41 @@ const assert = (cond, ...logs) => {
   !cond && logs.length && console.log(...logs);
   if (!cond) throw new Error(`assertion failed`);
 };
+
 // auth
 const Auth = new SafeToken({
-  encryptionKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  timeWindow: 3600,
-  rtDays: 365,
+  secret: "9494d249ad9fd041f9d052e0d0b9c9e7e45bfc3f",
 });
-console.log(Auth);
 // assertions
 // tokens
 console.time("t");
-let refreshToken = Auth.newRefreshToken(
-  JSON.stringify({ email: "fridaycandours@gmail.com" })
-);
-let accesToken = Auth.newAccessToken(
-  JSON.stringify({ email: "fridaycandours@gmail.com" })
-);
+let token = Auth.create({ email: "fridaycandours@gmail.com" });
+console.log({
+  token,
+});
 console.timeEnd("t");
 console.log({
-  accesToken,
+  decodedToken: Auth.verify(token),
+});
+
+// auth
+const Auth2 = new SafeToken({
+  secret: "9494d249ad9fd041f9d052e0d0b9c9e7e45bfc3f",
+  timeWindows: {
+    // ? all provided in miliseconds
+    access: 3600000 /*1 hour*/,
+    refresh: 2592000000 /*1 month*/,
+  },
+});
+// assertions
+// tokens
+let accessToken = Auth2.create({ email: "fridaycandours@gmail.com" });
+let refreshToken = Auth2.create({ email: "fridaycandours@gmail.com" });
+console.log({
+  accessToken,
   refreshToken,
-  accesTokenD: JSON.parse(Auth.verifyAccessToken(accesToken)),
-  refreshTokenD: JSON.parse(Auth.verifyRefreshToken(refreshToken)),
+});
+console.log({
+  decodedAccessToken: Auth2.verify(accessToken, "access"),
+  decodedRefreshToken: Auth2.verify(refreshToken, "refresh"),
 });
