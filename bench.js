@@ -5,7 +5,7 @@ const Auth = new SafeToken({
   secret: "9494d249ad9fd041f9d052e0d0b9c9e7e45bfc3f",
 });
 
-export async function benchSuit(code, runs = 1_000_000, label) {
+export async function benchSuit(code, runs = 1_000, label) {
   const startTime = performance.now();
   for (let i = 0; i < runs; i++) {
     await code();
