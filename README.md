@@ -107,7 +107,7 @@ Feel free to adjust the information based on your project's specific considerati
 
 Support me via cryptos -
 
-- Bitcoin: bc1q228fnx44ha9y5lvtku70pjgaeh2jj3f867nwye
-- etheruen: 0xd067560fDed3B1f3244d460d5E3011BC42C4E5d7
+- BTC: bc1q228fnx44ha9y5lvtku70pjgaeh2jj3f867nwye
+- ETH: 0xd067560fDed3B1f3244d460d5E3011BC42C4E5d7
 - LTC: ltc1quvc04rpmsurvss6ll54fvdgyh95p5kf74wppa6
 - TRX: THag6WuG4EoiB911ce9ELgN3p7DibtS6vP
