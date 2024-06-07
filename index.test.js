@@ -12,13 +12,13 @@ const Auth = new SafeToken({
 // assertions
 // tokens
 console.time("t");
-let token = Auth.create({ email: "fridaycandours@gmail.com" });
+let token = await Auth.create({ email: "fridaycandours@gmail.com" });
 console.log({
   token,
 });
 console.timeEnd("t");
 console.log({
-  decodedToken: Auth.verify(token),
+  decodedToken: await Auth.verify(token),
 });
 
 // auth
@@ -32,13 +32,13 @@ const Auth2 = new SafeToken({
 });
 // assertions
 // tokens
-let accessToken = Auth2.create({ email: "fridaycandours@gmail.com" });
-let refreshToken = Auth2.create({ email: "fridaycandours@gmail.com" });
+let accessToken = await Auth2.create({ email: "fridaycandours@gmail.com" });
+let refreshToken = await Auth2.create({ email: "fridaycandours@gmail.com" });
 console.log({
   accessToken,
   refreshToken,
 });
 console.log({
-  decodedAccessToken: Auth2.verify(accessToken, "access"),
-  decodedRefreshToken: Auth2.verify(refreshToken, "refresh"),
+  decodedAccessToken: await Auth2.verify(accessToken, "access"),
+  decodedRefreshToken: await Auth2.verify(refreshToken, "refresh"),
 });

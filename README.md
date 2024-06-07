@@ -30,7 +30,7 @@ const Auth = new SafeToken({
 ## Creating a token
 
 ```js
-let token = Auth.create({ email: "johndoe@gmail.com" });
+let token = await Auth.create({ email: "johndoe@gmail.com" });
 console.log({
   token,
 });
@@ -40,12 +40,12 @@ console.log({
 
 ```js
 console.log({
-  decodedToken: Auth.verify(token),
+  decodedToken: await Auth.verify(token),
 });
 
 //? only decode doesn't verify
 console.log({
-  decodedToken: Auth.decode(token),
+  decodedToken: await Auth.decode(token),
 });
 ```
 
@@ -73,15 +73,15 @@ const Auth2 = new SafeToken({
 ### Usaging custom time windows
 
 ```js
-let accessToken = Auth2.create({ email: "fridaycandours@gmail.com" });
-let refreshToken = Auth2.create({ email: "fridaycandours@gmail.com" });
+let accessToken = await Auth2.create({ email: "fridaycandours@gmail.com" });
+let refreshToken = await Auth2.create({ email: "fridaycandours@gmail.com" });
 console.log({
   accessToken,
   refreshToken,
 });
 console.log({
-  decodedAccessToken: Auth2.verify(accessToken, "access"),
-  decodedRefreshToken: Auth2.verify(refreshToken, "refresh"),
+  decodedAccessToken: await Auth2.verify(accessToken, "access"),
+  decodedRefreshToken: await Auth2.verify(refreshToken, "refresh"),
 });
 ```
 

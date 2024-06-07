@@ -7,7 +7,7 @@ export declare class SafeToken<TimeWindow extends Record<string, number> = {
         timeWindows?: TimeWindow;
         secret: string;
     });
-    create(data?: Record<string, string | number | boolean>): string;
-    verify(token: string, timeWindowKey?: keyof TimeWindow): any;
+    create(data?: Record<string, string | number | boolean>): Promise<string>;
+    verify(token: string, timeWindowKey?: keyof TimeWindow): Promise<Record<string, string | number | boolean>>;
     decode(token: string): any;
 }
