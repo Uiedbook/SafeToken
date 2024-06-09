@@ -75,7 +75,7 @@ const timestamp = () => {
         .join("");
 };
 function timingSafeEqual(a, b) {
-    if (a.length !== b.length) {
+    if (a?.length !== b.length) {
         return false;
     }
     let result = 0;
