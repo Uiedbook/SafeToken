@@ -58,7 +58,7 @@ const isIntime = (timeWindow, lastTime) => {
     }
     const lastTimeParsed = parseInt(lastTime, 16);
     if (isNaN(lastTimeParsed)) {
-        throw new Error("Invalid timestamp format");
+        return false;
     }
     const ms = Math.abs(Date.now() - lastTimeParsed * 1000);
     return timeWindow > ms;
