@@ -31,6 +31,9 @@ export class SafeToken<
 
   decode(token: string) {
     const data = token.split(".")[2];
+    if (!data) {
+      throw new Error("Invalid token");
+    }
     const decodedData = base64UrlDecode(data);
     return JSON.parse(decodedData);
   }
@@ -68,6 +71,9 @@ async function verifyToken(token: string, secret: string, timeWindow: number) {
   const [time, signature, data] = token.split(".");
   if (!isIntime(timeWindow, time)) {
     throw new Error("Token expired");
+  }
+  if (!time || !signature || !data) {
+    throw new Error("Invalid token");
   }
 
   const enc = new TextEncoder();
