@@ -18,6 +18,46 @@ SafeToken is easy for everyone.
 
 The `SafeToken` class provides methods for generating tokens. Tokens are generated using crypto to enhance security. Token expiration is managed, and new tokens can be generated based on configured time intervals.
 
+## Why SafeToken over JWT?
+
+This is a niche, lightweight library rather than an industry standard, so the case for it comes straight from the code itself. For specific internal Node.js/TypeScript projects it can be a simpler and safer alternative to JWT:
+
+### 1. Safer by design — no algorithm confusion
+
+Standard JWTs include a header (`{"alg": "HS256", ...}`) that tells the server how to verify the signature. Attackers have exploited this by switching the header to `"alg": "none"` or swapping RSA public keys for HMAC secrets.
+
+SafeToken hardcodes HMAC-SHA256 and never reads an algorithm from the token. This eliminates an entire class of critical vulnerabilities (CVE-2015-9235, etc.) that have repeatedly hit JWT implementations.
+
+### 2. Tiny and auditable
+
+A full JWT implementation (like `jsonwebtoken` or `jose`) can be thousands of lines supporting RSA, ECDSA, PSS, and more. SafeToken is roughly 150 lines of code — you can read and verify the whole execution path in about 15 minutes. Less code means fewer places for bugs to hide.
+
+### 3. Fast and lean
+
+- **Native crypto:** it uses the Web Crypto API (`crypto.subtle`) directly — a native Node.js standard that runs closer to the metal than older JS crypto libraries.
+- **Smaller tokens:** it skips the verbose JWT header (`eyJhbGciOiJIUzI...`). A SafeToken is just `[HexTimestamp].[Signature].[Base64Data]`, saving bytes on every request.
+
+## Comparison with JWT
+
+| Feature | SafeToken | Standard JWT | Verdict |
+|---|---|---|---|
+| Attack Surface | Minimal (150 lines, 1 alg) | High (Complex spec, many algs) | SafeToken wins for simplicity. |
+| Algorithm Confusion | Impossible (Hardcoded) | Possible (Depends on library config) | SafeToken wins for security. |
+| Interoperability | None (Only your app works) | Universal (Parsable by anything) | JWT wins for public APIs. |
+| Ecosystem | Non-existent (No tutorials/docs) | Massive (Standard everywhere) | JWT wins for maintainability. |
+
+## When to use (and not use) SafeToken
+
+Use it when:
+
+- You control both the server and the client (a specific internal app).
+- You want to eliminate "alg" header vulnerabilities by design.
+- You value a dependency-free, lightweight codebase.
+
+Avoid it when:
+
+- You need features like `audience` (`aud`) or `issuer` (`iss`) checks out of the box (you'd have to build these yourself).
+
 ## Usage
 
 ```js
