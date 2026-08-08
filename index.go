@@ -2,15 +2,14 @@ package safetoken
 
 import (
 	"crypto/hmac"
-	"crypto/subtle"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -31,11 +30,14 @@ func New(init Config) (*SafeToken, error) {
 		return nil, errors.New("Please provide safetoken secret")
 	}
 
-	timeWindow := init.TimeWindows
-	if timeWindow == nil {
-		timeWindow = map[string]int64{
-			"access": 3600000, // 1 hour default
+	timeWindow := make(map[string]int64)
+	if init.TimeWindows != nil {
+		for k, v := range init.TimeWindows {
+			timeWindow[k] = v
 		}
+	}
+	if len(timeWindow) == 0 {
+		timeWindow["access"] = 3600000 // 1 hour default (in ms)
 	}
 
 	return &SafeToken{
@@ -77,7 +79,7 @@ func (s *SafeToken) Decode(token string) (map[string]any, error) {
 	}
 
 	var payload map[string]any
-	if err := json.Unmarshal([]byte(decodedData), &payload); err != nil {
+	if err := json.Unmarshal(decodedData, &payload); err != nil {
 		return nil, errors.New("Invalid token")
 	}
 
@@ -90,14 +92,14 @@ func createHmacSha256Signature(payload map[string]any, secret string, t string) 
 		return "", err
 	}
 
-	tbuf := base64UrlEncode(t)
-	dataToSign := base64UrlEncode(string(payloadBytes))
+	tbuf := base64UrlEncode([]byte(t))
+	dataToSign := base64UrlEncode(payloadBytes)
 
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(dataToSign + tbuf))
 	signatureBuffer := h.Sum(nil)
 
-	signature := base64UrlEncode(string(signatureBuffer))
+	signature := base64UrlEncode(signatureBuffer)
 	return fmt.Sprintf("%s.%s.%s", t, signature, dataToSign), nil
 }
 
@@ -123,14 +125,14 @@ func verifyToken(token string, secret string, timeWindow int64) (map[string]any,
 		return nil, errors.New("Token expired")
 	}
 
-	timeBase64 := base64UrlEncode(t)
+	timeBase64 := base64UrlEncode([]byte(t))
 	dataToSign := data + timeBase64
 
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(dataToSign))
 	signatureBuffer := h.Sum(nil)
 
-	expectedSignature := base64UrlEncode(string(signatureBuffer))
+	expectedSignature := base64UrlEncode(signatureBuffer)
 
 	if timingSafeEqual(signature, expectedSignature) {
 		decodedData, err := base64UrlDecode(data)
@@ -138,7 +140,7 @@ func verifyToken(token string, secret string, timeWindow int64) (map[string]any,
 			return nil, errors.New("Invalid token")
 		}
 		var payload map[string]any
-		if err := json.Unmarshal([]byte(decodedData), &payload); err != nil {
+		if err := json.Unmarshal(decodedData, &payload); err != nil {
 			return nil, errors.New("Invalid token")
 		}
 		return payload, nil
@@ -155,8 +157,17 @@ func isIntime(timeWindow int64, lastTime string) (bool, error) {
 	if err != nil {
 		return false, nil
 	}
-	ms := int64(math.Abs(float64(time.Now().UnixMilli() - lastTimeParsed*1000)))
-	return timeWindow > ms, nil
+
+	nowMs := time.Now().UnixMilli()
+	tokenMs := lastTimeParsed * 1000
+
+	// Protect against future-dated token attack (allow up to 5s clock skew)
+	diff := nowMs - tokenMs
+	if diff < -5000 {
+		return false, nil
+	}
+
+	return diff <= timeWindow, nil
 }
 
 func timestamp() string {
@@ -173,23 +184,19 @@ func timingSafeEqual(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func base64UrlEncode(str string) string {
-	return base64.RawURLEncoding.EncodeToString([]byte(str))
+func base64UrlEncode(data []byte) string {
+	return base64.RawURLEncoding.EncodeToString(data)
 }
 
-func base64UrlDecode(str string) (string, error) {
+func base64UrlDecode(str string) ([]byte, error) {
 	data, err := base64.RawURLEncoding.DecodeString(str)
 	if err != nil {
-		// Fallback to std encoding with standard replace if needed
 		s := strings.ReplaceAll(str, "-", "+")
 		s = strings.ReplaceAll(s, "_", "/")
 		for len(s)%4 != 0 {
 			s += "="
 		}
-		data, err = base64.StdEncoding.DecodeString(s)
-		if err != nil {
-			return "", err
-		}
+		return base64.StdEncoding.DecodeString(s)
 	}
-	return string(data), nil
+	return data, nil
 }

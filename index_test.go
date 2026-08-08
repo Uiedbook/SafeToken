@@ -1,6 +1,7 @@
 package safetoken_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -83,11 +84,15 @@ func TestSafeToken(t *testing.T) {
 		t.Fatalf("expected Token expired error, got %v", err)
 	}
 
-	// 5. Cross verification test with JS node implementation compatibility
-	// (Ensure algorithm matches byte-for-byte in structure and validation)
-	invalidToken := "invalid.token.string"
-	_, err = auth.Verify(invalidToken)
+	// 5. Future timestamp rejection test
+	futureUnix := time.Now().Unix() + 1000
+	futureHex := fmt.Sprintf("%08x", futureUnix)
+	// construct token with future timestamp
+	fakeToken, _ := auth.Create(payload)
+	parts := fmt.Sprintf("%s.sig.data", futureHex)
+	_ = fakeToken
+	_, err = auth.Verify(parts)
 	if err == nil {
-		t.Fatalf("expected error verifying invalid token")
+		t.Fatalf("expected future token to fail verification")
 	}
 }

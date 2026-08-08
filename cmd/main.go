@@ -1,29 +1,31 @@
 package main
 
 import (
-    "fmt"
-    "safetoken"   // adjust to your actual module path
+	"fmt"
+
+	"safetoken"
 )
 
 func main() {
-    
 	secret := "9494d249ad9fd041f9d052e0d0b9c9e7e45bfc3f"
-    	auth, err := safetoken.New(safetoken.Config{Secret: secret})
+	auth, err := safetoken.New(safetoken.Config{Secret: secret})
 	if err != nil {
-		fmt.Println("failed to create SafeToken instance: %v", err)
+		fmt.Printf("failed to create SafeToken instance: %v\n", err)
+		return
 	}
 
-	// 2. Create & Verify token with default time window ("access")
 	payload := map[string]any{"email": "josiah89@kakdikas.now"}
 	token, err := auth.Create(payload)
 	if err != nil {
-		fmt.Println("failed to create token: %v", err)
+		fmt.Printf("failed to create token: %v\n", err)
+		return
 	}
-    fmt.Println(token)
+	fmt.Println(token)
 
 	decodedAccess, err := auth.Verify(token, "access")
 	if err != nil {
-		fmt.Println("failed to verify access token: %v", err)
+		fmt.Printf("failed to verify access token: %v\n", err)
+		return
 	}
 
 	fmt.Println(decodedAccess["email"])
