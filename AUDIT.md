@@ -30,16 +30,6 @@ Everything this library does hangs on the secret. If someone uses a weak one, an
 
 Fix: require a minimum length. 32 characters at least. Refuse to start otherwise.
 
-### 3. Expired check accepts tokens from the future
-
-```js
-const ms = Math.abs(Date.now() - lastTimeParsed * 1000);
-```
-
-The `Math.abs` here is wrong. It means "how far apart are these two times" in either direction. So a token stamped with a time in the FUTURE passes the check just fine. That makes no sense. A token from the future should never be valid.
-
-Fix: drop the `Math.abs`. Just do `Date.now() - issuedAt` and reject if that's bigger than the window, or if the timestamp is ahead of now (give it a few seconds of slack for clock differences).
-
 ### 4. Expiry gets checked before the signature
 
 In `verifyToken` the order is:
