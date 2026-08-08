@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fridaycandour/SafeToken.git"
+    "url": "git+https://github.com/CodeDynasty-dev/SafeToken.git"
   },
   "keywords": [
     "safe-token",
@@ -28,7 +28,7 @@
   ],
   "author": "fridaycandour",
   "license": "MIT",
-  "homepage": "https://github.com/fridaycandour/safeToken",
+  "homepage": "https://github.com/CodeDynasty-dev/safeToken",
   "devDependencies": {
     "@types/node": "^18.19.34"
   }
