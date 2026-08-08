@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"safetoken"
+	"github.com/CodeDynasty-dev/safetoken"
 )
 
 func TestSafeToken(t *testing.T) {

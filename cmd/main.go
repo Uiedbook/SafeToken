@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"safetoken"
+	"github.com/CodeDynasty-dev/safetoken"
 )
 
 func main() {
