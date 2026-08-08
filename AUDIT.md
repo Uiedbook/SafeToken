@@ -70,3 +70,35 @@ No try/catch anywhere. A malformed token makes `atob` or `JSON.parse` throw thei
 ### 10. No way to rotate secrets
 
 No key id, no version field. If the secret ever leaks, changing it kills every token instantly with no rollover period. Fine for now but should be documented so people know what they're signing up for.
+
+### 11. String stack overflow with spread operator on large HMAC signatures (`String.fromCharCode(...uint8Array)`)
+
+```js
+const signature = base64UrlEncode(
+  String.fromCharCode(...new Uint8Array(signatureBuffer))
+);
+```
+
+Passing a `Uint8Array` directly to `String.fromCharCode(...arr)` via argument spreading can trigger `RangeError: Maximum call stack size exceeded` in V8 JavaScript engines if the byte array is large. While SHA-256 is 32 bytes (safe for current signature size), using spread syntax for byte array conversion is unsafe practice.
+
+Fix: use `Buffer.from(signatureBuffer).toString('binary')` or `TextDecoder` / standard Uint8Array loop.
+
+### 12. Non-standard timingSafeEqual loop fallback
+
+```js
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a?.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+```
+
+Returning `false` immediately on length mismatch (`a?.length !== b.length`) leaks signature length over side-channel timing analysis. Standard timing-safe equality implementations always process a constant number of iterations regardless of length mismatch.
+
+Fix: use Node's native `crypto.timingSafeEqual` or compare buffers with fixed loop length.
+
