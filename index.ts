@@ -104,15 +104,23 @@ async function verifyToken(token: string, secret: string, timeWindow: number) {
 }
 
 const isIntime = (timeWindow: number, lastTime: string): boolean => {
-  if (!timeWindow) {
+  if (timeWindow === undefined || timeWindow === null || timeWindow <= 0) {
     throw new Error("Invalid time window");
   }
   const lastTimeParsed = parseInt(lastTime, 16);
   if (isNaN(lastTimeParsed)) {
     return false;
   }
-  const ms = Math.abs(Date.now() - lastTimeParsed * 1000);
-  return timeWindow > ms;
+  const nowMs = Date.now();
+  const tokenMs = lastTimeParsed * 1000;
+  const diff = nowMs - tokenMs;
+
+  // Protect against future-dated token timestamp exploit (allow up to 5s clock skew)
+  if (diff < -5000) {
+    return false;
+  }
+
+  return timeWindow >= diff;
 };
 
 const timestamp = (): string => {
